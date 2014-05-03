@@ -1,5 +1,5 @@
 # IDE stuff
-.idea
+.ideagit
 *.iml
 
 node_modules
