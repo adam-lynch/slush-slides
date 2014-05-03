@@ -1,6 +1,6 @@
 gulp-slides
 ===========
 
-A slidedeck generator built with gulp
+A slidedeck generator built with Gulp
 
 ## Work in progress!
