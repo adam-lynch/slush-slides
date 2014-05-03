@@ -1,4 +1,4 @@
-gulp-slides
+slush-slides
 ===========
 
 A slidedeck generator built with Gulp

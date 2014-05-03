@@ -1,64 +1,65 @@
 {
-  "name": "gulp-slides",
-  "version": "0.0.2",
-  "description": "A slidedeck generator built with Gulp",
-  "private": true,
-  "scripts": {
-    "setup": "npm i -g bower && bower i && npm i -g coffee-script && npm i -g gulp && npm i",
-    "compile": "coffee -c gulpfile.coffee && gulp",
-    "test": "echo \"Error: no tests yet. Ask for some or even send a pull-request (https://github.com/adam-lynch/gulp-slides/issues)/\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/adam-lynch/gulp-slides.git"
-  },
-  "keywords": [
-    "gulp",
-    "slides",
-    "slidedeck",
-    "talk",
-    "presentation"
-  ],
-  "author": "Adam Lynch <contact@adamlynch.com>",
-  "contributors": [
-      {
-          "name" : "Adam Lynch",
-          "email" : "contact@adamlynch.com",
-          "url" : "http://adamlynch.com/"
-      },
-      {
-          "name" : "John Webb",
-          "email" : "johngwebb64@gmail.com"
-      }
-  ],
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/adam-lynch/gulp-slides/issues"
-  },
-  "homepage": "https://github.com/adam-lynch/gulp-slides",
-  "devDependencies": {
-    "bower": "~1.3.2",
-    "browserify": "~3.38.1",
-    "coffee-script": "~1.7.1",
-    "coffeeify": "~0.6.0",
-    "cult": "~1.1.0",
-    "gulp": "~3.6.0",
-    "gulp-autoprefixer": "0.0.7",
-    "gulp-bower-files": "~0.2.1",
-    "gulp-browserify": "~0.5.0",
-    "gulp-clean": "~0.2.4",
-    "gulp-coffee": "~1.4.1",
-    "gulp-concat": "~2.2.0",
-    "gulp-front-matter": "~1.0.0",
-    "gulp-imagemin": "~0.2.0",
-    "gulp-jade": "~0.4.2",
-    "gulp-less": "~1.2.3",
-    "gulp-load-plugins": "^0.5.0",
-    "gulp-markdown": "~0.1.2",
-    "gulp-rename": "~1.2.0",
-    "gulp-uglify": "~0.2.1",
-    "gulp-w3cjs": "~0.1.2",
-    "lazypipe": "^0.2.1",
-    "through": "~2.3.4"
-  }
+    "name": "slush-slides",
+    "version": "0.0.2",
+    "description": "A slidedeck generator built with Gulp",
+    "private": true,
+    "scripts": {
+        "setup": "npm i -g bower && bower i && npm i -g coffee-script && npm i -g gulp && npm i",
+        "compile": "coffee -c gulpfile.coffee && gulp",
+        "test": "echo \"Error: no tests yet. Ask for some or even send a pull-request (https://github.com/adam-lynch/slush-slides/issues)/\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/adam-lynch/slush-slides.git"
+    },
+    "keywords": [
+        "gulp",
+        "slides",
+        "slidedeck",
+        "talk",
+        "presentation",
+        "slushgenerator"
+    ],
+    "author": "Adam Lynch <contact@adamlynch.com>",
+    "contributors": [
+        {
+            "name": "Adam Lynch",
+            "email": "contact@adamlynch.com",
+            "url": "http://adamlynch.com/"
+        },
+        {
+            "name": "John Webb",
+            "email": "johngwebb64@gmail.com"
+        }
+    ],
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/adam-lynch/slush-slides/issues"
+    },
+    "homepage": "https://github.com/adam-lynch/slush-slides",
+    "devDependencies": {
+        "bower": "~1.3.2",
+        "browserify": "~3.38.1",
+        "coffee-script": "~1.7.1",
+        "coffeeify": "~0.6.0",
+        "cult": "~1.1.0",
+        "gulp": "~3.6.0",
+        "gulp-autoprefixer": "0.0.7",
+        "gulp-bower-files": "~0.2.1",
+        "gulp-browserify": "~0.5.0",
+        "gulp-clean": "~0.2.4",
+        "gulp-coffee": "~1.4.1",
+        "gulp-concat": "~2.2.0",
+        "gulp-front-matter": "~1.0.0",
+        "gulp-imagemin": "~0.2.0",
+        "gulp-jade": "~0.4.2",
+        "gulp-less": "~1.2.3",
+        "gulp-load-plugins": "^0.5.0",
+        "gulp-markdown": "~0.1.2",
+        "gulp-rename": "~1.2.0",
+        "gulp-uglify": "~0.2.1",
+        "gulp-w3cjs": "~0.1.2",
+        "lazypipe": "^0.2.1",
+        "through": "~2.3.4"
+    }
 }
