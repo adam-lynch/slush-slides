@@ -1,6 +1,6 @@
 {
   "name": "gulp-slides",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A slidedeck generator built with Gulp",
   "private": true,
   "scripts": {
