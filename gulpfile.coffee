@@ -4,15 +4,12 @@ $ = require("gulp-load-plugins")();
 each = require 'through'
 lazypipe = require 'lazypipe'
 
-
 latestSlides = []
 # Any reusable paths / globs go here; trying to keep things DRY
 paths =
     source: -> './src/'
     imagesDir: -> @source() + 'images/'
     images: -> [@imagesDir() + '*.png', @imagesDir() + '*.jpg']
-    compressedImagesDir: -> @imagesDir() + 'compressedImages/'
-    compressedImages: -> @compressedImagesDir() + '*'
     slides: -> @source() + 'slides/*.md'
     scriptsDir: -> @source() + 'scripts/'
     scripts: -> @scriptsDir() + '*.coffee'
@@ -41,15 +38,13 @@ pipes =
 # Main tasks
 #
 
-
 gulp.task 'default', ['compile']
-
 
 gulp.task 'compile', ['images', 'scripts', 'styles', 'templates']
 
 
 gulp.task 'watch', ['compile'], ->
-    gulp.watch paths.compressedImages(), ['images']
+    gulp.watch paths.images(), ['images']
     gulp.watch paths.scripts(), ['scripts']
     gulp.watch paths.styles(), ['styles']
     gulp.watch [paths.slides(), paths.templates()], ['templates']
@@ -64,20 +59,13 @@ gulp.task 'validate', ->
     gulp.src(paths.outputHtml())
     .pipe($.w3cjs())
 
-
-gulp.task 'compress-images', ->
-    gulp.src(paths.images())
-    .pipe($.imagemin())
-    .pipe(gulp.dest(paths.compressedImagesDir()))
-
-
 #
 # Secondary level tasks
 #
 
 
 gulp.task 'images', ->
-    gulp.src(paths.compressedImages())
+    gulp.src(paths.images())
     .pipe(gulp.dest(paths.outputImageDir()))
 
 
