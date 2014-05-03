@@ -17,7 +17,8 @@
     "slides",
     "slidedeck",
     "talk",
-    "presentation"
+    "presentation",
+    "gulpfriendly"
   ],
   "author": "Adam Lynch <contact@adamlynch.com>",
   "contributors": [
