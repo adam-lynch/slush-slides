@@ -1,6 +1,6 @@
 slush-slides
 ===========
 
-A slidedeck generator built with Gulp
+A slidedeck generator built with [Gulp](http://gulpjs.com).
 
-## Work in progress!
+See the [demo](http://adamlynch.com/gulp-slides) (also includes usage guide).
