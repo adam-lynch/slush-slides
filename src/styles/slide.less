@@ -1,12 +1,9 @@
 .slide {
-
   position: relative;
   float: left;
   height: 100%;
   width: 100%;
-
   margin: 0;
-
   background: @slidesBackground;
   color: @slidesColor;
 
@@ -15,32 +12,6 @@
 //  }
 
   //specific slide styles
-  &:first-child {
-    h1 {
-      font-size: @firstSlideTitleSize;
-    }
-
-    img {
-      position: absolute;
-      right: 0;
-      width: 100px;
-    }
-  }
-
-  &:nth-child(3){
-    background: red;//TODO: remove
-  }
-
-  &.teamwork-slide {
-    .fullScreenBackground('teamwork.jpg');
-    .reset-slide-offset();
-  }
-
-  &.ked-slide {
-    .fullScreenBackground('ked.jpg');
-    .reset-slide-offset();
-  }
-
   &.long-list{
     ul {
       li {
@@ -81,7 +52,6 @@
 }
 
 .reset-slide-offset {
-
   .slide-inner {
     .uncentre-vertically();
   }
