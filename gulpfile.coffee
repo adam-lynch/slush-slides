@@ -49,10 +49,12 @@ gulp.task 'browser-sync', ->
 # Main tasks
 #
 
-gulp.task 'default', ['compile']
+gulp.task 'default', ['init']
+
+gulp.task 'init', ->
+  # todo
 
 gulp.task 'compile', ['images', 'scripts', 'styles', 'templates']
-
 
 gulp.task 'watch', ['compile', 'browser-sync'], ->
     gulp.watch paths.images(), ['images']
