@@ -3,6 +3,7 @@ gulp = require 'gulp'
 $ = require("gulp-load-plugins")();
 each = require 'through'
 lazypipe = require 'lazypipe'
+browserSync = require 'browser-sync'
 
 latestSlides = []
 # Any reusable paths / globs go here; trying to keep things DRY
@@ -35,6 +36,16 @@ pipes =
 
 
 #
+# Browser sync Static server
+#
+
+gulp.task 'browser-sync', ->
+    browserSync.init(null,
+      server:
+        baseDir: "./"
+    )
+
+#
 # Main tasks
 #
 
@@ -43,7 +54,7 @@ gulp.task 'default', ['compile']
 gulp.task 'compile', ['images', 'scripts', 'styles', 'templates']
 
 
-gulp.task 'watch', ['compile'], ->
+gulp.task 'watch', ['compile', 'browser-sync'], ->
     gulp.watch paths.images(), ['images']
     gulp.watch paths.scripts(), ['scripts']
     gulp.watch paths.styles(), ['styles']
@@ -116,3 +127,4 @@ gulp.task 'styles', ->
     .pipe($.less())
     .pipe($.autoprefixer('last 2 versions'))
     .pipe(gulp.dest(paths.output()))
+    .pipe(browserSync.reload({stream:true}))
