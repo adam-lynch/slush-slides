@@ -39,7 +39,8 @@
   },
   "homepage": "https://github.com/adam-lynch/slush-slides",
   "dependencies": {
-    "gulp": "~3.6.0"
+    "gulp": "~3.6.0",
+    "gulp-install": "^0.1.5"
   },
   "devDependencies": {
     "gulp-chug": "^0.1.10",
