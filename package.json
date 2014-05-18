@@ -2,7 +2,6 @@
   "name": "slush-slides",
   "version": "0.0.4",
   "description": "A (slush) slidedeck generator",
-  "private": true,
   "scripts": {
     "test": "node slushToGulp.js && gulp"
   },
