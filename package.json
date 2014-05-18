@@ -1,11 +1,9 @@
 {
   "name": "slush-slides",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "description": "A (slush) slidedeck generator",
   "private": true,
   "scripts": {
-    "setup": "npm i -g bower && bower i && npm i -g coffee-script && npm i -g gulp && npm i",
-    "compile": "coffee -c gulpfile.coffee && gulp",
     "test": "node slushToGulp.js && gulp"
   },
   "repository": {
