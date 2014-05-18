@@ -41,7 +41,6 @@
     "gulp-load-plugins": "^0.5.1"
   },
   "devDependencies": {
-    "gulp-chug": "^0.1.10",
     "gulp-rename": "^1.2.0",
     "gulp-replace": "^0.3.0"
   }
