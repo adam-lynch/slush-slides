@@ -19,7 +19,7 @@ paths.styles = paths.stylesDir + '*.less';
 paths.rootStylesheet = paths.stylesDir + 'index.less';
 paths.templates = paths.source + 'templates/*.jade';
 
-paths.output = './output/';
+paths.output = './';
 paths.outputHtml = paths.output + '*.html';
 paths.outputImageDir = paths.output + 'images/';
 paths.outputScriptsDir = paths.output + 'scripts/';
