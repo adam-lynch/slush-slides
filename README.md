@@ -1,4 +1,4 @@
-slush-slides
+slush-slides _(Work in progress!)_
 ===========
 
 A ([slush](https://github.com/klei/slush)) slidedeck generator.
