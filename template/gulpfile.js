@@ -7,10 +7,10 @@ var lazypipe = require('lazypipe');
 var latestSlides = [];
 // Any reusable paths / globs go here; trying to keep things DRY
 var paths = {};
-paths.source = './src/';
+paths.source = './slides/src/';
 paths.imagesDir = paths.source + 'images/';
 paths.images = [paths.imagesDir + '*.png', paths.imagesDir + '*.jpg'];
-paths.slides = paths.source + './*.md';
+paths.slides = './slides/*.md';
 paths.scriptsDir = paths.source + 'scripts/';
 paths.scripts = paths.scriptsDir + '*.coffee';
 paths.rootScript = paths.scriptsDir + 'index.coffee';
@@ -19,8 +19,9 @@ paths.styles = paths.stylesDir + '*.less';
 paths.rootStylesheet = paths.stylesDir + 'index.less';
 paths.templates = paths.source + 'templates/*.jade';
 
-paths.output = './';
-paths.outputHtml = paths.output + '*.html';
+paths.output = './output/';
+paths.outputHtmlDir = './';
+paths.outputHtml = paths.outputHtmlDir + '*.html';
 paths.outputImageDir = paths.output + 'images/';
 paths.outputScriptsDir = paths.output + 'scripts/';
 
@@ -117,7 +118,7 @@ gulp.task('templates', ['parse-slides'], function() {
                 slides: latestSlides
             }
         }))
-        .pipe(gulp.dest(paths.output));
+        .pipe(gulp.dest(paths.outputHtmlDir));
 });
 
 
