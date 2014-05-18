@@ -5,7 +5,7 @@
     "private": true,
     "scripts": {
         "setup": "npm i -g bower && bower i && npm i -g coffee-script && npm i -g gulp && npm i",
-        "compile": "coffee -c gulpfile.coffee && gulp",
+        "compile": "gulp",
         "test": "echo \"Error: no tests yet. Ask for some or even send a pull-request (https://github.com/adam-lynch/slush-slides/issues)/\" && exit 1"
     },
     "repository": {
