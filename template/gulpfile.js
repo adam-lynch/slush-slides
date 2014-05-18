@@ -39,11 +39,7 @@ var pipes = {
 * Main tasks
 */
 
-gulp.task('default', ['init']);
-
-gulp.task('init', function() {
-    // todo
-});
+gulp.task('default', ['compile']);
 
 gulp.task('compile', ['images', 'scripts', 'styles', 'templates']);
 
