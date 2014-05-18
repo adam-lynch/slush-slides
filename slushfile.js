@@ -1,5 +1,7 @@
 var gulp = require('gulp');
-var $ = require('gulp-load-plugins')();
+var $ = require('gulp-load-plugins')({
+    config: __dirname + '/package.json'
+});
 
 gulp.task('default', ['init']);
 

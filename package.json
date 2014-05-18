@@ -1,6 +1,6 @@
 {
   "name": "slush-slides",
-  "version": "0.0.4",
+  "version": "0.0.6",
   "description": "A (slush) slidedeck generator",
   "scripts": {
     "test": "node slushToGulp.js && gulp"
@@ -37,12 +37,12 @@
   "homepage": "https://github.com/adam-lynch/slush-slides",
   "dependencies": {
     "gulp": "~3.6.0",
-    "gulp-install": "^0.1.5"
+    "gulp-install": "^0.1.5",
+    "gulp-load-plugins": "^0.5.1"
   },
   "devDependencies": {
     "gulp-chug": "^0.1.10",
     "gulp-rename": "^1.2.0",
-    "gulp-load-plugins": "^0.5.1",
     "gulp-replace": "^0.3.0"
   }
 }
