@@ -30,5 +30,6 @@ build/Release
 node_modules
 
 output
-gulpfile.js
 third-party/*
+gulpfile.js
+test

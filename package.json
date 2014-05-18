@@ -1,44 +1,50 @@
 {
-    "name": "slush-slides",
-    "version": "0.0.2",
-    "description": "A (slush) slidedeck generator",
-    "private": true,
-    "scripts": {
-        "setup": "npm i -g bower && bower i && npm i -g coffee-script && npm i -g gulp && npm i",
-        "compile": "coffee -c gulpfile.coffee && gulp",
-        "test": "echo \"Error: no tests yet. Ask for some or even send a pull-request (https://github.com/adam-lynch/slush-slides/issues)/\" && exit 1"
+  "name": "slush-slides",
+  "version": "0.0.2",
+  "description": "A (slush) slidedeck generator",
+  "private": true,
+  "scripts": {
+    "setup": "npm i -g bower && bower i && npm i -g coffee-script && npm i -g gulp && npm i",
+    "compile": "coffee -c gulpfile.coffee && gulp",
+    "test": "node slushToGulp.js && gulp"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/adam-lynch/slush-slides.git"
+  },
+  "keywords": [
+    "gulp",
+    "slides",
+    "slidedeck",
+    "talk",
+    "presentation",
+    "gulpfriendly",
+    "slushgenerator"
+  ],
+  "author": "Adam Lynch <contact@adamlynch.com>",
+  "contributors": [
+    {
+      "name": "Adam Lynch",
+      "email": "contact@adamlynch.com",
+      "url": "http://adamlynch.com/"
     },
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/adam-lynch/slush-slides.git"
-    },
-    "keywords": [
-        "gulp",
-        "slides",
-        "slidedeck",
-        "talk",
-        "presentation",
-        "gulpfriendly",
-        "slushgenerator"
-    ],
-    "author": "Adam Lynch <contact@adamlynch.com>",
-    "contributors": [
-        {
-            "name": "Adam Lynch",
-            "email": "contact@adamlynch.com",
-            "url": "http://adamlynch.com/"
-        },
-        {
-            "name": "John Webb",
-            "email": "johngwebb64@gmail.com"
-        }
-    ],
-    "license": "MIT",
-    "bugs": {
-        "url": "https://github.com/adam-lynch/slush-slides/issues"
-    },
-    "homepage": "https://github.com/adam-lynch/slush-slides",
-    "dependencies": {
-        "gulp": "~3.6.0"
+    {
+      "name": "John Webb",
+      "email": "johngwebb64@gmail.com"
     }
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/adam-lynch/slush-slides/issues"
+  },
+  "homepage": "https://github.com/adam-lynch/slush-slides",
+  "dependencies": {
+    "gulp": "~3.6.0"
+  },
+  "devDependencies": {
+    "gulp-chug": "^0.1.10",
+    "gulp-rename": "^1.2.0",
+    "gulp-load-plugins": "^0.5.1",
+    "gulp-replace": "^0.3.0"
+  }
 }
