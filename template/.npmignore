@@ -31,4 +31,3 @@ node_modules
 
 output
 third-party/*
-gulpfile.js
