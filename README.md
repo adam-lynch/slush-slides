@@ -32,7 +32,7 @@ See the [demo](http://adamlynch.com/gulp-slides) (also includes usage guide).
 
 - Gulp tasks for converting your slides to images / a PDF
 - Better image path handling
-- Theming
+- Themes and or templates
 - And more
 
 
