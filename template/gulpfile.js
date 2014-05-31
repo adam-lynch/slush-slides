@@ -110,7 +110,7 @@ gulp.task('scripts-third-party', function(done){
         .pipe($.concat('third-party.js'))
         .pipe(pipes.minifyAndStoreScripts())
         .on('error', function(err){
-            exit(err);
+            throw err;
         })
         .on('end', done);
 });
