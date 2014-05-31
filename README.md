@@ -1,4 +1,4 @@
-slush-slides _(Work in progress!)_ [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency Status][depstat-image]][depstat-url]
+slush-slides [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency Status][depstat-image]][depstat-url]
 ===========
 
 A ([slush](https://github.com/klei/slush)) slidedeck generator.
