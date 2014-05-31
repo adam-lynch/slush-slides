@@ -36,3 +36,4 @@ slushToGulp.js
 .editorconfig
 test
 .travis.yml
+!template/gulpfile.js

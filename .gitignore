@@ -33,3 +33,4 @@ output
 third-party/*
 /gulpfile.js
 test
+!template/gulpfile.js
