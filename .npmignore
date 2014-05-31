@@ -35,3 +35,4 @@ third-party/*
 slushToGulp.js
 .editorconfig
 test
+.travis.yml

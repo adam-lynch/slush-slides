@@ -3,7 +3,7 @@
   "version": "0.0.8",
   "description": "A (slush) slidedeck generator",
   "scripts": {
-    "test": "node slushToGulp.js && gulp"
+    "test": "node slushToGulp.js && gulp && cd test && gulp"
   },
   "repository": {
     "type": "git",
