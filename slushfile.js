@@ -5,9 +5,14 @@ var $ = require('gulp-load-plugins')({
 
 gulp.task('default', ['init']);
 
-gulp.task('init', function(done){
+gulp.task('init', ['copy'], function(done){
+    gulp.src(['./package.json', './bower.json'])
+        .pipe($.install())
+        .on('end', done);
+});
+
+gulp.task('copy', function(done){
     gulp.src(__dirname + '/template/**', {dot: true})
         .pipe(gulp.dest('./'))
-        .pipe($.install())
         .on('end', done);
 });
