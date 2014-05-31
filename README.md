@@ -3,7 +3,7 @@ slush-slides [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]
 
 A ([slush](https://github.com/klei/slush)) slidedeck generator.
 
-See the [demo](http://adamlynch.com/gulp-slides) (also includes usage guide).
+See the [demo](http://www.adamlynch.com/slush-slides) (also includes usage guide).
 
 
 ## Installation
