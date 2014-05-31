@@ -1,6 +1,6 @@
 {
   "name": "slush-slides",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "A (slush) slidedeck generator",
   "scripts": {
     "test": "node slushToGulp.js && gulp && cd test && gulp"
