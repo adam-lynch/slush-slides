@@ -16,7 +16,7 @@ See the [demo](http://adamlynch.com/gulp-slides) (also includes usage guide).
 
 ---
 
-** Install slush-slides **
+**Install slush-slides**
 
 1. `npm install -g slush-slides`
 
