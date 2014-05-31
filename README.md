@@ -1,4 +1,4 @@
-slush-slides _(Work in progress!)_
+slush-slides _(Work in progress!)_ [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency Status][depstat-image]][depstat-url]
 ===========
 
 A ([slush](https://github.com/klei/slush)) slidedeck generator.
@@ -33,3 +33,13 @@ See the [demo](http://adamlynch.com/gulp-slides) (also includes usage guide).
 - Gulp tasks for converting your slides to images / a PDF
 - Better image path handling
 - And more
+
+
+[npm-url]: https://npmjs.org/package/slush-slides
+[npm-image]: https://badge.fury.io/js/slush-slides.png
+
+[travis-url]: http://travis-ci.org/adam-lynch/slush-slides
+[travis-image]: http://img.shields.io/travis/adam-lynch/slush-slides.svg?style=flat
+
+[depstat-url]: https://david-dm.org/adam-lynch/slush-slides
+[depstat-image]: https://david-dm.org/adam-lynch/slush-slides.png
