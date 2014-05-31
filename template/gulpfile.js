@@ -104,10 +104,6 @@ gulp.task('scripts-third-party', function(){
 	$.bowerFiles()
 	.pipe($.concat('third-party.js'))
 	.pipe(pipes.minifyAndStoreScripts());
-
-	gulp.src(paths.source + 'third-party/third-party-static/*')
-	.pipe($.concat('third-party-static.js'))
-	.pipe(pipes.minifyAndStoreScripts());
 });
 
 
