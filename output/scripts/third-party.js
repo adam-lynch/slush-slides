@@ -9,7 +9,7 @@ unbind:function(a,b){return m.bind(a,function(){},b)},trigger:function(a,b){if(q
 b[c[e].seq]=1,x(c[e].callback,d,c[e].combo,c[e].seq)):g||x(c[e].callback,d,c[e].combo);c="keypress"==d.type&&I;d.type!=u||w(a)||c||t(b);I=g&&"keydown"==d.type}};J.Mousetrap=m;"function"===typeof define&&define.amd&&define(m)})(window,document);
 
 /*!
- * jQuery JavaScript Library v2.1.0
+ * jQuery JavaScript Library v2.1.1
  * http://jquery.com/
  *
  * Includes Sizzle.js
@@ -19,7 +19,7 @@ b[c[e].seq]=1,x(c[e].callback,d,c[e].combo,c[e].seq)):g||x(c[e].callback,d,c[e].
  * Released under the MIT license
  * http://jquery.org/license
  *
- * Date: 2014-01-23T21:10Z
+ * Date: 2014-05-01T17:11Z
  */
 
 (function( global, factory ) {
@@ -69,8 +69,6 @@ var toString = class2type.toString;
 
 var hasOwn = class2type.hasOwnProperty;
 
-var trim = "".trim;
-
 var support = {};
 
 
@@ -79,7 +77,7 @@ var
 	// Use the correct document accordingly with window argument (sandbox)
 	document = window.document,
 
-	version = "2.1.0",
+	version = "2.1.1",
 
 	// Define a local copy of jQuery
 	jQuery = function( selector, context ) {
@@ -87,6 +85,10 @@ var
 		// Need init if jQuery is called (just allow error to be thrown if not included)
 		return new jQuery.fn.init( selector, context );
 	},
+
+	// Support: Android<4.1
+	// Make sure we trim BOM and NBSP
+	rtrim = /^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g,
 
 	// Matches dashed string for camelizing
 	rmsPrefix = /^-ms-/,
@@ -118,10 +120,10 @@ jQuery.fn = jQuery.prototype = {
 	get: function( num ) {
 		return num != null ?
 
-			// Return a 'clean' array
+			// Return just the one element from the set
 			( num < 0 ? this[ num + this.length ] : this[ num ] ) :
 
-			// Return just the object
+			// Return all the elements in a clean array
 			slice.call( this );
 	},
 
@@ -277,7 +279,7 @@ jQuery.extend({
 		// parseFloat NaNs numeric-cast false positives (null|true|false|"")
 		// ...but misinterprets leading-number strings, particularly hex literals ("0x...")
 		// subtraction forces infinities to NaN
-		return obj - parseFloat( obj ) >= 0;
+		return !jQuery.isArray( obj ) && obj - parseFloat( obj ) >= 0;
 	},
 
 	isPlainObject: function( obj ) {
@@ -289,16 +291,8 @@ jQuery.extend({
 			return false;
 		}
 
-		// Support: Firefox <20
-		// The try/catch suppresses exceptions thrown when attempting to access
-		// the "constructor" property of certain host objects, ie. |window.location|
-		// https://bugzilla.mozilla.org/show_bug.cgi?id=814622
-		try {
-			if ( obj.constructor &&
-					!hasOwn.call( obj.constructor.prototype, "isPrototypeOf" ) ) {
-				return false;
-			}
-		} catch ( e ) {
+		if ( obj.constructor &&
+				!hasOwn.call( obj.constructor.prototype, "isPrototypeOf" ) ) {
 			return false;
 		}
 
@@ -408,8 +402,11 @@ jQuery.extend({
 		return obj;
 	},
 
+	// Support: Android<4.1
 	trim: function( text ) {
-		return text == null ? "" : trim.call( text );
+		return text == null ?
+			"" :
+			( text + "" ).replace( rtrim, "" );
 	},
 
 	// results is for internal usage only
@@ -561,14 +558,14 @@ function isArraylike( obj ) {
 }
 var Sizzle =
 /*!
- * Sizzle CSS Selector Engine v1.10.16
+ * Sizzle CSS Selector Engine v1.10.19
  * http://sizzlejs.com/
  *
  * Copyright 2013 jQuery Foundation, Inc. and other contributors
  * Released under the MIT license
  * http://jquery.org/license
  *
- * Date: 2014-01-13
+ * Date: 2014-04-18
  */
 (function( window ) {
 
@@ -577,7 +574,9 @@ var i,
 	Expr,
 	getText,
 	isXML,
+	tokenize,
 	compile,
+	select,
 	outermostContext,
 	sortInput,
 	hasDuplicate,
@@ -644,17 +643,23 @@ var i,
 	// Proper syntax: http://www.w3.org/TR/CSS21/syndata.html#value-def-identifier
 	identifier = characterEncoding.replace( "w", "w#" ),
 
-	// Acceptable operators http://www.w3.org/TR/selectors/#attribute-selectors
-	attributes = "\\[" + whitespace + "*(" + characterEncoding + ")" + whitespace +
-		"*(?:([*^$|!~]?=)" + whitespace + "*(?:(['\"])((?:\\\\.|[^\\\\])*?)\\3|(" + identifier + ")|)|)" + whitespace + "*\\]",
+	// Attribute selectors: http://www.w3.org/TR/selectors/#attribute-selectors
+	attributes = "\\[" + whitespace + "*(" + characterEncoding + ")(?:" + whitespace +
+		// Operator (capture 2)
+		"*([*^$|!~]?=)" + whitespace +
+		// "Attribute values must be CSS identifiers [capture 5] or strings [capture 3 or capture 4]"
+		"*(?:'((?:\\\\.|[^\\\\'])*)'|\"((?:\\\\.|[^\\\\\"])*)\"|(" + identifier + "))|)" + whitespace +
+		"*\\]",
 
-	// Prefer arguments quoted,
-	//   then not containing pseudos/brackets,
-	//   then attribute selectors/non-parenthetical expressions,
-	//   then anything else
-	// These preferences are here to reduce the number of selectors
-	//   needing tokenize in the PSEUDO preFilter
-	pseudos = ":(" + characterEncoding + ")(?:\\(((['\"])((?:\\\\.|[^\\\\])*?)\\3|((?:\\\\.|[^\\\\()[\\]]|" + attributes.replace( 3, 8 ) + ")*)|.*)\\)|)",
+	pseudos = ":(" + characterEncoding + ")(?:\\((" +
+		// To reduce the number of selectors needing tokenize in the preFilter, prefer arguments:
+		// 1. quoted (capture 3; capture 4 or capture 5)
+		"('((?:\\\\.|[^\\\\'])*)'|\"((?:\\\\.|[^\\\\\"])*)\")|" +
+		// 2. simple (capture 6)
+		"((?:\\\\.|[^\\\\()[\\]]|" + attributes + ")*)|" +
+		// 3. anything else (capture 2)
+		".*" +
+		")\\)|)",
 
 	// Leading and non-escaped trailing whitespace, capturing some non-whitespace characters preceding the latter
 	rtrim = new RegExp( "^" + whitespace + "+|((?:^|[^\\\\])(?:\\\\.)*)" + whitespace + "+$", "g" ),
@@ -699,7 +704,7 @@ var i,
 	funescape = function( _, escaped, escapedWhitespace ) {
 		var high = "0x" + escaped - 0x10000;
 		// NaN means non-codepoint
-		// Support: Firefox
+		// Support: Firefox<24
 		// Workaround erroneous numeric interpretation of +"0x"
 		return high !== high || escapedWhitespace ?
 			escaped :
@@ -1095,7 +1100,7 @@ setDocument = Sizzle.setDocument = function( node ) {
 				var m = context.getElementById( id );
 				// Check parentNode to catch when Blackberry 4.6 returns
 				// nodes that are no longer in the document #6963
-				return m && m.parentNode ? [m] : [];
+				return m && m.parentNode ? [ m ] : [];
 			}
 		};
 		Expr.filter["ID"] = function( id ) {
@@ -1175,11 +1180,13 @@ setDocument = Sizzle.setDocument = function( node ) {
 			// setting a boolean content attribute,
 			// since its presence should be enough
 			// http://bugs.jquery.com/ticket/12359
-			div.innerHTML = "<select t=''><option selected=''></option></select>";
+			div.innerHTML = "<select msallowclip=''><option selected=''></option></select>";
 
-			// Support: IE8, Opera 10-12
+			// Support: IE8, Opera 11-12.16
 			// Nothing should be selected when empty strings follow ^= or $= or *=
-			if ( div.querySelectorAll("[t^='']").length ) {
+			// The test attribute must be unknown in Opera but "safe" for WinRT
+			// http://msdn.microsoft.com/en-us/library/ie/hh465388.aspx#attribute_section
+			if ( div.querySelectorAll("[msallowclip^='']").length ) {
 				rbuggyQSA.push( "[*^$]=" + whitespace + "*(?:''|\"\")" );
 			}
 
@@ -1222,7 +1229,8 @@ setDocument = Sizzle.setDocument = function( node ) {
 		});
 	}
 
-	if ( (support.matchesSelector = rnative.test( (matches = docElem.webkitMatchesSelector ||
+	if ( (support.matchesSelector = rnative.test( (matches = docElem.matches ||
+		docElem.webkitMatchesSelector ||
 		docElem.mozMatchesSelector ||
 		docElem.oMatchesSelector ||
 		docElem.msMatchesSelector) )) ) {
@@ -1403,7 +1411,7 @@ Sizzle.matchesSelector = function( elem, expr ) {
 		} catch(e) {}
 	}
 
-	return Sizzle( expr, document, null, [elem] ).length > 0;
+	return Sizzle( expr, document, null, [ elem ] ).length > 0;
 };
 
 Sizzle.contains = function( context, elem ) {
@@ -1532,7 +1540,7 @@ Expr = Sizzle.selectors = {
 			match[1] = match[1].replace( runescape, funescape );
 
 			// Move the given value to match[3] whether quoted or unquoted
-			match[3] = ( match[4] || match[5] || "" ).replace( runescape, funescape );
+			match[3] = ( match[3] || match[4] || match[5] || "" ).replace( runescape, funescape );
 
 			if ( match[2] === "~=" ) {
 				match[3] = " " + match[3] + " ";
@@ -1575,15 +1583,15 @@ Expr = Sizzle.selectors = {
 
 		"PSEUDO": function( match ) {
 			var excess,
-				unquoted = !match[5] && match[2];
+				unquoted = !match[6] && match[2];
 
 			if ( matchExpr["CHILD"].test( match[0] ) ) {
 				return null;
 			}
 
 			// Accept quoted arguments as-is
-			if ( match[3] && match[4] !== undefined ) {
-				match[2] = match[4];
+			if ( match[3] ) {
+				match[2] = match[4] || match[5] || "";
 
 			// Strip excess characters from unquoted arguments
 			} else if ( unquoted && rpseudo.test( unquoted ) &&
@@ -1988,7 +1996,7 @@ function setFilters() {}
 setFilters.prototype = Expr.filters = Expr.pseudos;
 Expr.setFilters = new setFilters();
 
-function tokenize( selector, parseOnly ) {
+tokenize = Sizzle.tokenize = function( selector, parseOnly ) {
 	var matched, match, tokens, type,
 		soFar, groups, preFilters,
 		cached = tokenCache[ selector + " " ];
@@ -2053,7 +2061,7 @@ function tokenize( selector, parseOnly ) {
 			Sizzle.error( selector ) :
 			// Cache the tokens
 			tokenCache( selector, groups ).slice( 0 );
-}
+};
 
 function toSelector( tokens ) {
 	var i = 0,
@@ -2130,6 +2138,15 @@ function elementMatcher( matchers ) {
 			return true;
 		} :
 		matchers[0];
+}
+
+function multipleContexts( selector, contexts, results ) {
+	var i = 0,
+		len = contexts.length;
+	for ( ; i < len; i++ ) {
+		Sizzle( selector, contexts[i], results );
+	}
+	return results;
 }
 
 function condense( unmatched, map, filter, context, xml ) {
@@ -2400,7 +2417,7 @@ function matcherFromGroupMatchers( elementMatchers, setMatchers ) {
 		superMatcher;
 }
 
-compile = Sizzle.compile = function( selector, group /* Internal Use Only */ ) {
+compile = Sizzle.compile = function( selector, match /* Internal Use Only */ ) {
 	var i,
 		setMatchers = [],
 		elementMatchers = [],
@@ -2408,12 +2425,12 @@ compile = Sizzle.compile = function( selector, group /* Internal Use Only */ ) {
 
 	if ( !cached ) {
 		// Generate a function of recursive functions that can be used to check each element
-		if ( !group ) {
-			group = tokenize( selector );
+		if ( !match ) {
+			match = tokenize( selector );
 		}
-		i = group.length;
+		i = match.length;
 		while ( i-- ) {
-			cached = matcherFromTokens( group[i] );
+			cached = matcherFromTokens( match[i] );
 			if ( cached[ expando ] ) {
 				setMatchers.push( cached );
 			} else {
@@ -2423,74 +2440,83 @@ compile = Sizzle.compile = function( selector, group /* Internal Use Only */ ) {
 
 		// Cache the compiled function
 		cached = compilerCache( selector, matcherFromGroupMatchers( elementMatchers, setMatchers ) );
+
+		// Save selector and tokenization
+		cached.selector = selector;
 	}
 	return cached;
 };
 
-function multipleContexts( selector, contexts, results ) {
-	var i = 0,
-		len = contexts.length;
-	for ( ; i < len; i++ ) {
-		Sizzle( selector, contexts[i], results );
-	}
-	return results;
-}
-
-function select( selector, context, results, seed ) {
+/**
+ * A low-level selection function that works with Sizzle's compiled
+ *  selector functions
+ * @param {String|Function} selector A selector or a pre-compiled
+ *  selector function built with Sizzle.compile
+ * @param {Element} context
+ * @param {Array} [results]
+ * @param {Array} [seed] A set of elements to match against
+ */
+select = Sizzle.select = function( selector, context, results, seed ) {
 	var i, tokens, token, type, find,
-		match = tokenize( selector );
+		compiled = typeof selector === "function" && selector,
+		match = !seed && tokenize( (selector = compiled.selector || selector) );
 
-	if ( !seed ) {
-		// Try to minimize operations if there is only one group
-		if ( match.length === 1 ) {
+	results = results || [];
 
-			// Take a shortcut and set the context if the root selector is an ID
-			tokens = match[0] = match[0].slice( 0 );
-			if ( tokens.length > 2 && (token = tokens[0]).type === "ID" &&
-					support.getById && context.nodeType === 9 && documentIsHTML &&
-					Expr.relative[ tokens[1].type ] ) {
+	// Try to minimize operations if there is no seed and only one group
+	if ( match.length === 1 ) {
 
-				context = ( Expr.find["ID"]( token.matches[0].replace(runescape, funescape), context ) || [] )[0];
-				if ( !context ) {
-					return results;
-				}
-				selector = selector.slice( tokens.shift().value.length );
+		// Take a shortcut and set the context if the root selector is an ID
+		tokens = match[0] = match[0].slice( 0 );
+		if ( tokens.length > 2 && (token = tokens[0]).type === "ID" &&
+				support.getById && context.nodeType === 9 && documentIsHTML &&
+				Expr.relative[ tokens[1].type ] ) {
+
+			context = ( Expr.find["ID"]( token.matches[0].replace(runescape, funescape), context ) || [] )[0];
+			if ( !context ) {
+				return results;
+
+			// Precompiled matchers will still verify ancestry, so step up a level
+			} else if ( compiled ) {
+				context = context.parentNode;
 			}
 
-			// Fetch a seed set for right-to-left matching
-			i = matchExpr["needsContext"].test( selector ) ? 0 : tokens.length;
-			while ( i-- ) {
-				token = tokens[i];
+			selector = selector.slice( tokens.shift().value.length );
+		}
 
-				// Abort if we hit a combinator
-				if ( Expr.relative[ (type = token.type) ] ) {
-					break;
-				}
-				if ( (find = Expr.find[ type ]) ) {
-					// Search, expanding context for leading sibling combinators
-					if ( (seed = find(
-						token.matches[0].replace( runescape, funescape ),
-						rsibling.test( tokens[0].type ) && testContext( context.parentNode ) || context
-					)) ) {
+		// Fetch a seed set for right-to-left matching
+		i = matchExpr["needsContext"].test( selector ) ? 0 : tokens.length;
+		while ( i-- ) {
+			token = tokens[i];
 
-						// If seed is empty or no tokens remain, we can return early
-						tokens.splice( i, 1 );
-						selector = seed.length && toSelector( tokens );
-						if ( !selector ) {
-							push.apply( results, seed );
-							return results;
-						}
+			// Abort if we hit a combinator
+			if ( Expr.relative[ (type = token.type) ] ) {
+				break;
+			}
+			if ( (find = Expr.find[ type ]) ) {
+				// Search, expanding context for leading sibling combinators
+				if ( (seed = find(
+					token.matches[0].replace( runescape, funescape ),
+					rsibling.test( tokens[0].type ) && testContext( context.parentNode ) || context
+				)) ) {
 
-						break;
+					// If seed is empty or no tokens remain, we can return early
+					tokens.splice( i, 1 );
+					selector = seed.length && toSelector( tokens );
+					if ( !selector ) {
+						push.apply( results, seed );
+						return results;
 					}
+
+					break;
 				}
 			}
 		}
 	}
 
-	// Compile and execute a filtering function
+	// Compile and execute a filtering function if one is not provided
 	// Provide `match` to avoid retokenization if we modified the selector above
-	compile( selector, match )(
+	( compiled || compile( selector, match ) )(
 		seed,
 		context,
 		!documentIsHTML,
@@ -2498,7 +2524,7 @@ function select( selector, context, results, seed ) {
 		rsibling.test( selector ) && testContext( context.parentNode ) || context
 	);
 	return results;
-}
+};
 
 // One-time assignments
 
@@ -3375,8 +3401,9 @@ jQuery.extend({
 		readyList.resolveWith( document, [ jQuery ] );
 
 		// Trigger any bound ready events
-		if ( jQuery.fn.trigger ) {
-			jQuery( document ).trigger("ready").off("ready");
+		if ( jQuery.fn.triggerHandler ) {
+			jQuery( document ).triggerHandler( "ready" );
+			jQuery( document ).off( "ready" );
 		}
 	}
 });
@@ -3748,11 +3775,15 @@ jQuery.fn.extend({
 				if ( elem.nodeType === 1 && !data_priv.get( elem, "hasDataAttrs" ) ) {
 					i = attrs.length;
 					while ( i-- ) {
-						name = attrs[ i ].name;
 
-						if ( name.indexOf( "data-" ) === 0 ) {
-							name = jQuery.camelCase( name.slice(5) );
-							dataAttr( elem, name, data[ name ] );
+						// Support: IE11+
+						// The attrs elements can be null (#14894)
+						if ( attrs[ i ] ) {
+							name = attrs[ i ].name;
+							if ( name.indexOf( "data-" ) === 0 ) {
+								name = jQuery.camelCase( name.slice(5) );
+								dataAttr( elem, name, data[ name ] );
+							}
 						}
 					}
 					data_priv.set( elem, "hasDataAttrs", true );
@@ -3982,10 +4013,17 @@ var rcheckableType = (/^(?:checkbox|radio)$/i);
 
 (function() {
 	var fragment = document.createDocumentFragment(),
-		div = fragment.appendChild( document.createElement( "div" ) );
+		div = fragment.appendChild( document.createElement( "div" ) ),
+		input = document.createElement( "input" );
 
 	// #11217 - WebKit loses check when the name is after the checked attribute
-	div.innerHTML = "<input type='radio' checked='checked' name='t'/>";
+	// Support: Windows Web Apps (WWA)
+	// `name` and `type` need .setAttribute for WWA
+	input.setAttribute( "type", "radio" );
+	input.setAttribute( "checked", "checked" );
+	input.setAttribute( "name", "t" );
+
+	div.appendChild( input );
 
 	// Support: Safari 5.1, iOS 5.1, Android 4.x, Android 2.3
 	// old WebKit doesn't clone checked state correctly in fragments
@@ -4005,7 +4043,7 @@ support.focusinBubbles = "onfocusin" in window;
 
 var
 	rkeyEvent = /^key/,
-	rmouseEvent = /^(?:mouse|contextmenu)|click/,
+	rmouseEvent = /^(?:mouse|pointer|contextmenu)|click/,
 	rfocusMorph = /^(?:focusinfocus|focusoutblur)$/,
 	rtypenamespace = /^([^.]*)(?:\.(.+)|)$/;
 
@@ -4574,7 +4612,7 @@ jQuery.event = {
 
 				// Support: Firefox 20+
 				// Firefox doesn't alert if the returnValue field is not set.
-				if ( event.result !== undefined ) {
+				if ( event.result !== undefined && event.originalEvent ) {
 					event.originalEvent.returnValue = event.result;
 				}
 			}
@@ -4625,9 +4663,9 @@ jQuery.Event = function( src, props ) {
 		// Events bubbling up the document may have been marked as prevented
 		// by a handler lower down the tree; reflect the correct value.
 		this.isDefaultPrevented = src.defaultPrevented ||
-				// Support: Android < 4.0
 				src.defaultPrevented === undefined &&
-				src.getPreventDefault && src.getPreventDefault() ?
+				// Support: Android < 4.0
+				src.returnValue === false ?
 			returnTrue :
 			returnFalse;
 
@@ -4674,7 +4712,14 @@ jQuery.Event.prototype = {
 		}
 	},
 	stopImmediatePropagation: function() {
+		var e = this.originalEvent;
+
 		this.isImmediatePropagationStopped = returnTrue;
+
+		if ( e && e.stopImmediatePropagation ) {
+			e.stopImmediatePropagation();
+		}
+
 		this.stopPropagation();
 	}
 };
@@ -4683,7 +4728,9 @@ jQuery.Event.prototype = {
 // Support: Chrome 15+
 jQuery.each({
 	mouseenter: "mouseover",
-	mouseleave: "mouseout"
+	mouseleave: "mouseout",
+	pointerenter: "pointerover",
+	pointerleave: "pointerout"
 }, function( orig, fix ) {
 	jQuery.event.special[ orig ] = {
 		delegateType: fix,
@@ -5108,7 +5155,7 @@ jQuery.extend({
 	},
 
 	cleanData: function( elems ) {
-		var data, elem, events, type, key, j,
+		var data, elem, type, key,
 			special = jQuery.event.special,
 			i = 0;
 
@@ -5117,9 +5164,8 @@ jQuery.extend({
 				key = elem[ data_priv.expando ];
 
 				if ( key && (data = data_priv.cache[ key ]) ) {
-					events = Object.keys( data.events || {} );
-					if ( events.length ) {
-						for ( j = 0; (type = events[j]) !== undefined; j++ ) {
+					if ( data.events ) {
+						for ( type in data.events ) {
 							if ( special[ type ] ) {
 								jQuery.event.remove( elem, type );
 
@@ -5422,14 +5468,15 @@ var iframe,
  */
 // Called only from within defaultDisplay
 function actualDisplay( name, doc ) {
-	var elem = jQuery( doc.createElement( name ) ).appendTo( doc.body ),
+	var style,
+		elem = jQuery( doc.createElement( name ) ).appendTo( doc.body ),
 
 		// getDefaultComputedStyle might be reliably used only on attached element
-		display = window.getDefaultComputedStyle ?
+		display = window.getDefaultComputedStyle && ( style = window.getDefaultComputedStyle( elem[ 0 ] ) ) ?
 
 			// Use of this method is a temporary fix (more like optmization) until something better comes along,
 			// since it was removed from specification and supported only in FF
-			window.getDefaultComputedStyle( elem[ 0 ] ).display : jQuery.css( elem[ 0 ], "display" );
+			style.display : jQuery.css( elem[ 0 ], "display" );
 
 	// We don't have any data stored on the element,
 	// so use "detach" method as fast way to get rid of the element
@@ -5552,28 +5599,32 @@ function addGetHookIf( conditionFn, hookFn ) {
 
 (function() {
 	var pixelPositionVal, boxSizingReliableVal,
-		// Support: Firefox, Android 2.3 (Prefixed box-sizing versions).
-		divReset = "padding:0;margin:0;border:0;display:block;-webkit-box-sizing:content-box;" +
-			"-moz-box-sizing:content-box;box-sizing:content-box",
 		docElem = document.documentElement,
 		container = document.createElement( "div" ),
 		div = document.createElement( "div" );
+
+	if ( !div.style ) {
+		return;
+	}
 
 	div.style.backgroundClip = "content-box";
 	div.cloneNode( true ).style.backgroundClip = "";
 	support.clearCloneStyle = div.style.backgroundClip === "content-box";
 
-	container.style.cssText = "border:0;width:0;height:0;position:absolute;top:0;left:-9999px;" +
-		"margin-top:1px";
+	container.style.cssText = "border:0;width:0;height:0;top:0;left:-9999px;margin-top:1px;" +
+		"position:absolute";
 	container.appendChild( div );
 
 	// Executing both pixelPosition & boxSizingReliable tests require only one layout
 	// so they're executed at the same time to save the second computation.
 	function computePixelPositionAndBoxSizingReliable() {
-		// Support: Firefox, Android 2.3 (Prefixed box-sizing versions).
-		div.style.cssText = "-webkit-box-sizing:border-box;-moz-box-sizing:border-box;" +
-			"box-sizing:border-box;padding:1px;border:1px;display:block;width:4px;margin-top:1%;" +
-			"position:absolute;top:1%";
+		div.style.cssText =
+			// Support: Firefox<29, Android 2.3
+			// Vendor-prefix box-sizing
+			"-webkit-box-sizing:border-box;-moz-box-sizing:border-box;" +
+			"box-sizing:border-box;display:block;margin-top:1%;top:1%;" +
+			"border:1px;padding:1px;width:4px;position:absolute";
+		div.innerHTML = "";
 		docElem.appendChild( container );
 
 		var divStyle = window.getComputedStyle( div, null );
@@ -5583,9 +5634,10 @@ function addGetHookIf( conditionFn, hookFn ) {
 		docElem.removeChild( container );
 	}
 
-	// Use window.getComputedStyle because jsdom on node.js will break without it.
+	// Support: node.js jsdom
+	// Don't assume that getComputedStyle is a property of the global object
 	if ( window.getComputedStyle ) {
-		jQuery.extend(support, {
+		jQuery.extend( support, {
 			pixelPosition: function() {
 				// This test is executed only once but we still do memoizing
 				// since we can use the boxSizingReliable pre-computing.
@@ -5607,7 +5659,13 @@ function addGetHookIf( conditionFn, hookFn ) {
 				// This support function is only executed once so no memoizing is needed.
 				var ret,
 					marginDiv = div.appendChild( document.createElement( "div" ) );
-				marginDiv.style.cssText = div.style.cssText = divReset;
+
+				// Reset CSS: box-sizing; display; margin; border; padding
+				marginDiv.style.cssText = div.style.cssText =
+					// Support: Firefox<29, Android 2.3
+					// Vendor-prefix box-sizing
+					"-webkit-box-sizing:content-box;-moz-box-sizing:content-box;" +
+					"box-sizing:content-box;display:block;margin:0;border:0;padding:0";
 				marginDiv.style.marginRight = marginDiv.style.width = "0";
 				div.style.width = "1px";
 				docElem.appendChild( container );
@@ -5615,9 +5673,6 @@ function addGetHookIf( conditionFn, hookFn ) {
 				ret = !parseFloat( window.getComputedStyle( marginDiv, null ).marginRight );
 
 				docElem.removeChild( container );
-
-				// Clean up the div for other support tests.
-				div.innerHTML = "";
 
 				return ret;
 			}
@@ -5657,8 +5712,8 @@ var
 
 	cssShow = { position: "absolute", visibility: "hidden", display: "block" },
 	cssNormalTransform = {
-		letterSpacing: 0,
-		fontWeight: 400
+		letterSpacing: "0",
+		fontWeight: "400"
 	},
 
 	cssPrefixes = [ "Webkit", "O", "Moz", "ms" ];
@@ -5805,13 +5860,10 @@ function showHide( elements, show ) {
 				values[ index ] = data_priv.access( elem, "olddisplay", defaultDisplay(elem.nodeName) );
 			}
 		} else {
+			hidden = isHidden( elem );
 
-			if ( !values[ index ] ) {
-				hidden = isHidden( elem );
-
-				if ( display && display !== "none" || !hidden ) {
-					data_priv.set( elem, "olddisplay", hidden ? display : jQuery.css(elem, "display") );
-				}
+			if ( display !== "none" || !hidden ) {
+				data_priv.set( elem, "olddisplay", hidden ? display : jQuery.css( elem, "display" ) );
 			}
 		}
 	}
@@ -5850,6 +5902,8 @@ jQuery.extend({
 	cssNumber: {
 		"columnCount": true,
 		"fillOpacity": true,
+		"flexGrow": true,
+		"flexShrink": true,
 		"fontWeight": true,
 		"lineHeight": true,
 		"opacity": true,
@@ -5914,9 +5968,6 @@ jQuery.extend({
 
 			// If a hook was provided, use that value, otherwise just set the specified value
 			if ( !hooks || !("set" in hooks) || (value = hooks.set( elem, value, extra )) !== undefined ) {
-				// Support: Chrome, Safari
-				// Setting style to blank string required to delete "style: x !important;"
-				style[ name ] = "";
 				style[ name ] = value;
 			}
 
@@ -5972,7 +6023,7 @@ jQuery.each([ "height", "width" ], function( i, name ) {
 			if ( computed ) {
 				// certain elements can have dimension info if we invisibly show them
 				// however, it must have a current display style that would benefit from this
-				return elem.offsetWidth === 0 && rdisplayswap.test( jQuery.css( elem, "display" ) ) ?
+				return rdisplayswap.test( jQuery.css( elem, "display" ) ) && elem.offsetWidth === 0 ?
 					jQuery.swap( elem, cssShow, function() {
 						return getWidthOrHeight( elem, name, extra );
 					}) :
@@ -6293,7 +6344,7 @@ function createTween( value, prop, animation ) {
 
 function defaultPrefilter( elem, props, opts ) {
 	/* jshint validthis: true */
-	var prop, value, toggle, tween, hooks, oldfire, display,
+	var prop, value, toggle, tween, hooks, oldfire, display, checkDisplay,
 		anim = this,
 		orig = {},
 		style = elem.style,
@@ -6337,13 +6388,12 @@ function defaultPrefilter( elem, props, opts ) {
 		// Set display property to inline-block for height/width
 		// animations on inline elements that are having width/height animated
 		display = jQuery.css( elem, "display" );
-		// Get default display if display is currently "none"
-		if ( display === "none" ) {
-			display = defaultDisplay( elem.nodeName );
-		}
-		if ( display === "inline" &&
-				jQuery.css( elem, "float" ) === "none" ) {
 
+		// Test default display if display is currently "none"
+		checkDisplay = display === "none" ?
+			data_priv.get( elem, "olddisplay" ) || defaultDisplay( elem.nodeName ) : display;
+
+		if ( checkDisplay === "inline" && jQuery.css( elem, "float" ) === "none" ) {
 			style.display = "inline-block";
 		}
 	}
@@ -6373,6 +6423,10 @@ function defaultPrefilter( elem, props, opts ) {
 				}
 			}
 			orig[ prop ] = dataShow && dataShow[ prop ] || jQuery.style( elem, prop );
+
+		// Any non-fx value stops us from restoring the original display value
+		} else {
+			display = undefined;
 		}
 	}
 
@@ -6415,6 +6469,10 @@ function defaultPrefilter( elem, props, opts ) {
 				}
 			}
 		}
+
+	// If this is a noop like .hide().hide(), restore an overwritten display value
+	} else if ( (display === "none" ? defaultDisplay( elem.nodeName ) : display) === "inline" ) {
+		style.display = display;
 	}
 }
 
@@ -7307,6 +7365,16 @@ jQuery.fn.extend({
 
 jQuery.extend({
 	valHooks: {
+		option: {
+			get: function( elem ) {
+				var val = jQuery.find.attr( elem, "value" );
+				return val != null ?
+					val :
+					// Support: IE10-11+
+					// option.text throws exceptions (#14686, #14858)
+					jQuery.trim( jQuery.text( elem ) );
+			}
+		},
 		select: {
 			get: function( elem ) {
 				var value, option,
@@ -7353,7 +7421,7 @@ jQuery.extend({
 
 				while ( i-- ) {
 					option = options[ i ];
-					if ( (option.selected = jQuery.inArray( jQuery(option).val(), values ) >= 0) ) {
+					if ( (option.selected = jQuery.inArray( option.value, values ) >= 0) ) {
 						optionSet = true;
 					}
 				}
@@ -8560,10 +8628,15 @@ jQuery.ajaxTransport(function( options ) {
 				// Create the abort callback
 				callback = xhrCallbacks[ id ] = callback("abort");
 
-				// Do send the request
-				// This may raise an exception which is actually
-				// handled in jQuery.ajax (so no try/catch here)
-				xhr.send( options.hasContent && options.data || null );
+				try {
+					// Do send the request (this may raise an exception)
+					xhr.send( options.hasContent && options.data || null );
+				} catch ( e ) {
+					// #14683: Only rethrow if this hasn't been notified as an error yet
+					if ( callback ) {
+						throw e;
+					}
+				}
 			},
 
 			abort: function() {
@@ -8770,7 +8843,7 @@ jQuery.fn.load = function( url, params, callback ) {
 		off = url.indexOf(" ");
 
 	if ( off >= 0 ) {
-		selector = url.slice( off );
+		selector = jQuery.trim( url.slice( off ) );
 		url = url.slice( 0, off );
 	}
 
@@ -9078,6 +9151,12 @@ jQuery.fn.andSelf = jQuery.fn.addBack;
 // derived from file names, and jQuery is normally delivered in a lowercase
 // file name. Do this after creating the global so that if an AMD module wants
 // to call noConflict to hide this version of jQuery, it will work.
+
+// Note that for maximum portability, libraries that are not jQuery should
+// declare themselves as anonymous modules, and avoid setting a global if an
+// AMD loader is present. jQuery is a special case. For more information, see
+// https://github.com/jrburke/requirejs/wiki/Updating-existing-libraries#wiki-anon
+
 if ( typeof define === "function" && define.amd ) {
 	define( "jquery", [], function() {
 		return jQuery;
@@ -9252,3 +9331,588 @@ this.length),b)+this},padRight:function(a,b){a=Ic(a);return this+Jc(S(0,a-this.l
 function(b,c){return J(a,c)?a[c]:b})}});H(s,!0,!0,{insert:s.prototype.add});
 (function(a){if(ba.btoa)Nc=ba.btoa,Oc=ba.atob;else{var b=/[^A-Za-z0-9\+\/\=]/g;Nc=function(b){var d="",e,g,f,h,l,n,x=0;do e=b.charCodeAt(x++),g=b.charCodeAt(x++),f=b.charCodeAt(x++),h=e>>2,e=(e&3)<<4|g>>4,l=(g&15)<<2|f>>6,n=f&63,isNaN(g)?l=n=64:isNaN(f)&&(n=64),d=d+a.charAt(h)+a.charAt(e)+a.charAt(l)+a.charAt(n);while(x<b.length);return d};Oc=function(c){var d="",e,g,f,h,l,n=0;if(c.match(b))throw Error("String contains invalid base64 characters");c=c.replace(/[^A-Za-z0-9\+\/\=]/g,"");do e=a.indexOf(c.charAt(n++)),
 g=a.indexOf(c.charAt(n++)),h=a.indexOf(c.charAt(n++)),l=a.indexOf(c.charAt(n++)),e=e<<2|g>>4,g=(g&15)<<4|h>>2,f=(h&3)<<6|l,d+=s.fromCharCode(e),64!=h&&(d+=s.fromCharCode(g)),64!=l&&(d+=s.fromCharCode(f));while(n<c.length);return d}}})("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=");})();
+
+
+/* **********************************************
+     Begin prism-core.js
+********************************************** */
+
+var self = (typeof window !== 'undefined') ? window : {};
+
+/**
+ * Prism: Lightweight, robust, elegant syntax highlighting
+ * MIT license http://www.opensource.org/licenses/mit-license.php/
+ * @author Lea Verou http://lea.verou.me
+ */
+
+var Prism = (function(){
+
+// Private helper vars
+var lang = /\blang(?:uage)?-(?!\*)(\w+)\b/i;
+
+var _ = self.Prism = {
+	util: {
+		encode: function (tokens) {
+			if (tokens instanceof Token) {
+				return new Token(tokens.type, _.util.encode(tokens.content));
+			} else if (_.util.type(tokens) === 'Array') {
+				return tokens.map(_.util.encode);
+			} else {
+				return tokens.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\u00a0/g, ' ');
+			}
+		},
+
+		type: function (o) {
+			return Object.prototype.toString.call(o).match(/\[object (\w+)\]/)[1];
+		},
+
+		// Deep clone a language definition (e.g. to extend it)
+		clone: function (o) {
+			var type = _.util.type(o);
+
+			switch (type) {
+				case 'Object':
+					var clone = {};
+
+					for (var key in o) {
+						if (o.hasOwnProperty(key)) {
+							clone[key] = _.util.clone(o[key]);
+						}
+					}
+
+					return clone;
+
+				case 'Array':
+					return o.slice();
+			}
+
+			return o;
+		}
+	},
+
+	languages: {
+		extend: function (id, redef) {
+			var lang = _.util.clone(_.languages[id]);
+
+			for (var key in redef) {
+				lang[key] = redef[key];
+			}
+
+			return lang;
+		},
+
+		// Insert a token before another token in a language literal
+		insertBefore: function (inside, before, insert, root) {
+			root = root || _.languages;
+			var grammar = root[inside];
+			var ret = {};
+
+			for (var token in grammar) {
+
+				if (grammar.hasOwnProperty(token)) {
+
+					if (token == before) {
+
+						for (var newToken in insert) {
+
+							if (insert.hasOwnProperty(newToken)) {
+								ret[newToken] = insert[newToken];
+							}
+						}
+					}
+
+					ret[token] = grammar[token];
+				}
+			}
+
+			return root[inside] = ret;
+		},
+
+		// Traverse a language definition with Depth First Search
+		DFS: function(o, callback) {
+			for (var i in o) {
+				callback.call(o, i, o[i]);
+
+				if (_.util.type(o) === 'Object') {
+					_.languages.DFS(o[i], callback);
+				}
+			}
+		}
+	},
+
+	highlightAll: function(async, callback) {
+		var elements = document.querySelectorAll('code[class*="language-"], [class*="language-"] code, code[class*="lang-"], [class*="lang-"] code');
+
+		for (var i=0, element; element = elements[i++];) {
+			_.highlightElement(element, async === true, callback);
+		}
+	},
+
+	highlightElement: function(element, async, callback) {
+		// Find language
+		var language, grammar, parent = element;
+
+		while (parent && !lang.test(parent.className)) {
+			parent = parent.parentNode;
+		}
+
+		if (parent) {
+			language = (parent.className.match(lang) || [,''])[1];
+			grammar = _.languages[language];
+		}
+
+		if (!grammar) {
+			return;
+		}
+
+		// Set language on the element, if not present
+		element.className = element.className.replace(lang, '').replace(/\s+/g, ' ') + ' language-' + language;
+
+		// Set language on the parent, for styling
+		parent = element.parentNode;
+
+		if (/pre/i.test(parent.nodeName)) {
+			parent.className = parent.className.replace(lang, '').replace(/\s+/g, ' ') + ' language-' + language;
+		}
+
+		var code = element.textContent;
+
+		if(!code) {
+			return;
+		}
+
+		var env = {
+			element: element,
+			language: language,
+			grammar: grammar,
+			code: code
+		};
+
+		_.hooks.run('before-highlight', env);
+
+		if (async && self.Worker) {
+			var worker = new Worker(_.filename);
+
+			worker.onmessage = function(evt) {
+				env.highlightedCode = Token.stringify(JSON.parse(evt.data), language);
+
+				_.hooks.run('before-insert', env);
+
+				env.element.innerHTML = env.highlightedCode;
+
+				callback && callback.call(env.element);
+				_.hooks.run('after-highlight', env);
+			};
+
+			worker.postMessage(JSON.stringify({
+				language: env.language,
+				code: env.code
+			}));
+		}
+		else {
+			env.highlightedCode = _.highlight(env.code, env.grammar, env.language)
+
+			_.hooks.run('before-insert', env);
+
+			env.element.innerHTML = env.highlightedCode;
+
+			callback && callback.call(element);
+
+			_.hooks.run('after-highlight', env);
+		}
+	},
+
+	highlight: function (text, grammar, language) {
+		var tokens = _.tokenize(text, grammar);
+		return Token.stringify(_.util.encode(tokens), language);
+	},
+
+	tokenize: function(text, grammar, language) {
+		var Token = _.Token;
+
+		var strarr = [text];
+
+		var rest = grammar.rest;
+
+		if (rest) {
+			for (var token in rest) {
+				grammar[token] = rest[token];
+			}
+
+			delete grammar.rest;
+		}
+
+		tokenloop: for (var token in grammar) {
+			if(!grammar.hasOwnProperty(token) || !grammar[token]) {
+				continue;
+			}
+
+			var pattern = grammar[token],
+				inside = pattern.inside,
+				lookbehind = !!pattern.lookbehind,
+				lookbehindLength = 0;
+
+			pattern = pattern.pattern || pattern;
+
+			for (var i=0; i<strarr.length; i++) { // Don’t cache length as it changes during the loop
+
+				var str = strarr[i];
+
+				if (strarr.length > text.length) {
+					// Something went terribly wrong, ABORT, ABORT!
+					break tokenloop;
+				}
+
+				if (str instanceof Token) {
+					continue;
+				}
+
+				pattern.lastIndex = 0;
+
+				var match = pattern.exec(str);
+
+				if (match) {
+					if(lookbehind) {
+						lookbehindLength = match[1].length;
+					}
+
+					var from = match.index - 1 + lookbehindLength,
+					    match = match[0].slice(lookbehindLength),
+					    len = match.length,
+					    to = from + len,
+						before = str.slice(0, from + 1),
+						after = str.slice(to + 1);
+
+					var args = [i, 1];
+
+					if (before) {
+						args.push(before);
+					}
+
+					var wrapped = new Token(token, inside? _.tokenize(match, inside) : match);
+
+					args.push(wrapped);
+
+					if (after) {
+						args.push(after);
+					}
+
+					Array.prototype.splice.apply(strarr, args);
+				}
+			}
+		}
+
+		return strarr;
+	},
+
+	hooks: {
+		all: {},
+
+		add: function (name, callback) {
+			var hooks = _.hooks.all;
+
+			hooks[name] = hooks[name] || [];
+
+			hooks[name].push(callback);
+		},
+
+		run: function (name, env) {
+			var callbacks = _.hooks.all[name];
+
+			if (!callbacks || !callbacks.length) {
+				return;
+			}
+
+			for (var i=0, callback; callback = callbacks[i++];) {
+				callback(env);
+			}
+		}
+	}
+};
+
+var Token = _.Token = function(type, content) {
+	this.type = type;
+	this.content = content;
+};
+
+Token.stringify = function(o, language, parent) {
+	if (typeof o == 'string') {
+		return o;
+	}
+
+	if (Object.prototype.toString.call(o) == '[object Array]') {
+		return o.map(function(element) {
+			return Token.stringify(element, language, o);
+		}).join('');
+	}
+
+	var env = {
+		type: o.type,
+		content: Token.stringify(o.content, language, parent),
+		tag: 'span',
+		classes: ['token', o.type],
+		attributes: {},
+		language: language,
+		parent: parent
+	};
+
+	if (env.type == 'comment') {
+		env.attributes['spellcheck'] = 'true';
+	}
+
+	_.hooks.run('wrap', env);
+
+	var attributes = '';
+
+	for (var name in env.attributes) {
+		attributes += name + '="' + (env.attributes[name] || '') + '"';
+	}
+
+	return '<' + env.tag + ' class="' + env.classes.join(' ') + '" ' + attributes + '>' + env.content + '</' + env.tag + '>';
+
+};
+
+if (!self.document) {
+	if (!self.addEventListener) {
+		// in Node.js
+		return self.Prism;
+	}
+ 	// In worker
+	self.addEventListener('message', function(evt) {
+		var message = JSON.parse(evt.data),
+		    lang = message.language,
+		    code = message.code;
+
+		self.postMessage(JSON.stringify(_.tokenize(code, _.languages[lang])));
+		self.close();
+	}, false);
+
+	return self.Prism;
+}
+
+// Get current script and highlight
+var script = document.getElementsByTagName('script');
+
+script = script[script.length - 1];
+
+if (script) {
+	_.filename = script.src;
+
+	if (document.addEventListener && !script.hasAttribute('data-manual')) {
+		document.addEventListener('DOMContentLoaded', _.highlightAll);
+	}
+}
+
+return self.Prism;
+
+})();
+
+if (typeof module !== 'undefined' && module.exports) {
+	module.exports = Prism;
+}
+
+
+/* **********************************************
+     Begin prism-markup.js
+********************************************** */
+
+Prism.languages.markup = {
+	'comment': /<!--[\w\W]*?-->/g,
+	'prolog': /<\?.+?\?>/,
+	'doctype': /<!DOCTYPE.+?>/,
+	'cdata': /<!\[CDATA\[[\w\W]*?]]>/i,
+	'tag': {
+		pattern: /<\/?[\w:-]+\s*(?:\s+[\w:-]+(?:=(?:("|')(\\?[\w\W])*?\1|[^\s'">=]+))?\s*)*\/?>/gi,
+		inside: {
+			'tag': {
+				pattern: /^<\/?[\w:-]+/i,
+				inside: {
+					'punctuation': /^<\/?/,
+					'namespace': /^[\w-]+?:/
+				}
+			},
+			'attr-value': {
+				pattern: /=(?:('|")[\w\W]*?(\1)|[^\s>]+)/gi,
+				inside: {
+					'punctuation': /=|>|"/g
+				}
+			},
+			'punctuation': /\/?>/g,
+			'attr-name': {
+				pattern: /[\w:-]+/g,
+				inside: {
+					'namespace': /^[\w-]+?:/
+				}
+			}
+
+		}
+	},
+	'entity': /\&#?[\da-z]{1,8};/gi
+};
+
+// Plugin to make entity title show the real entity, idea by Roman Komarov
+Prism.hooks.add('wrap', function(env) {
+
+	if (env.type === 'entity') {
+		env.attributes['title'] = env.content.replace(/&amp;/, '&');
+	}
+});
+
+
+/* **********************************************
+     Begin prism-css.js
+********************************************** */
+
+Prism.languages.css = {
+	'comment': /\/\*[\w\W]*?\*\//g,
+	'atrule': {
+		pattern: /@[\w-]+?.*?(;|(?=\s*{))/gi,
+		inside: {
+			'punctuation': /[;:]/g
+		}
+	},
+	'url': /url\((["']?).*?\1\)/gi,
+	'selector': /[^\{\}\s][^\{\};]*(?=\s*\{)/g,
+	'property': /(\b|\B)[\w-]+(?=\s*:)/ig,
+	'string': /("|')(\\?.)*?\1/g,
+	'important': /\B!important\b/gi,
+	'punctuation': /[\{\};:]/g,
+	'function': /[-a-z0-9]+(?=\()/ig
+};
+
+if (Prism.languages.markup) {
+	Prism.languages.insertBefore('markup', 'tag', {
+		'style': {
+			pattern: /<style[\w\W]*?>[\w\W]*?<\/style>/ig,
+			inside: {
+				'tag': {
+					pattern: /<style[\w\W]*?>|<\/style>/ig,
+					inside: Prism.languages.markup.tag.inside
+				},
+				rest: Prism.languages.css
+			}
+		}
+	});
+}
+
+/* **********************************************
+     Begin prism-clike.js
+********************************************** */
+
+Prism.languages.clike = {
+	'comment': {
+		pattern: /(^|[^\\])(\/\*[\w\W]*?\*\/|(^|[^:])\/\/.*?(\r?\n|$))/g,
+		lookbehind: true
+	},
+	'string': /("|')(\\?.)*?\1/g,
+	'class-name': {
+		pattern: /((?:(?:class|interface|extends|implements|trait|instanceof|new)\s+)|(?:catch\s+\())[a-z0-9_\.\\]+/ig,
+		lookbehind: true,
+		inside: {
+			punctuation: /(\.|\\)/
+		}
+	},
+	'keyword': /\b(if|else|while|do|for|return|in|instanceof|function|new|try|throw|catch|finally|null|break|continue)\b/g,
+	'boolean': /\b(true|false)\b/g,
+	'function': {
+		pattern: /[a-z0-9_]+\(/ig,
+		inside: {
+			punctuation: /\(/
+		}
+	},
+	'number': /\b-?(0x[\dA-Fa-f]+|\d*\.?\d+([Ee]-?\d+)?)\b/g,
+	'operator': /[-+]{1,2}|!|<=?|>=?|={1,3}|&{1,2}|\|?\||\?|\*|\/|\~|\^|\%/g,
+	'ignore': /&(lt|gt|amp);/gi,
+	'punctuation': /[{}[\];(),.:]/g
+};
+
+
+/* **********************************************
+     Begin prism-javascript.js
+********************************************** */
+
+Prism.languages.javascript = Prism.languages.extend('clike', {
+	'keyword': /\b(var|let|if|else|while|do|for|return|in|instanceof|function|get|set|new|with|typeof|try|throw|catch|finally|null|break|continue|this)\b/g,
+	'number': /\b-?(0x[\dA-Fa-f]+|\d*\.?\d+([Ee]-?\d+)?|NaN|-?Infinity)\b/g
+});
+
+Prism.languages.insertBefore('javascript', 'keyword', {
+	'regex': {
+		pattern: /(^|[^/])\/(?!\/)(\[.+?]|\\.|[^/\r\n])+\/[gim]{0,3}(?=\s*($|[\r\n,.;})]))/g,
+		lookbehind: true
+	}
+});
+
+if (Prism.languages.markup) {
+	Prism.languages.insertBefore('markup', 'tag', {
+		'script': {
+			pattern: /<script[\w\W]*?>[\w\W]*?<\/script>/ig,
+			inside: {
+				'tag': {
+					pattern: /<script[\w\W]*?>|<\/script>/ig,
+					inside: Prism.languages.markup.tag.inside
+				},
+				rest: Prism.languages.javascript
+			}
+		}
+	});
+}
+
+
+/* **********************************************
+     Begin prism-file-highlight.js
+********************************************** */
+
+(function(){
+
+if (!self.Prism || !self.document || !document.querySelector) {
+	return;
+}
+
+var Extensions = {
+	'js': 'javascript',
+	'html': 'markup',
+	'svg': 'markup',
+	'xml': 'markup',
+	'py': 'python'
+};
+
+Array.prototype.slice.call(document.querySelectorAll('pre[data-src]')).forEach(function(pre) {
+	var src = pre.getAttribute('data-src');
+	var extension = (src.match(/\.(\w+)$/) || [,''])[1];
+	var language = Extensions[extension] || extension;
+	
+	var code = document.createElement('code');
+	code.className = 'language-' + language;
+	
+	pre.textContent = '';
+	
+	code.textContent = 'Loading…';
+	
+	pre.appendChild(code);
+	
+	var xhr = new XMLHttpRequest();
+	
+	xhr.open('GET', src, true);
+
+	xhr.onreadystatechange = function() {
+		if (xhr.readyState == 4) {
+			
+			if (xhr.status < 400 && xhr.responseText) {
+				code.textContent = xhr.responseText;
+			
+				Prism.highlightElement(code);
+			}
+			else if (xhr.status >= 400) {
+				code.textContent = '✖ Error ' + xhr.status + ' while fetching file: ' + xhr.statusText;
+			}
+			else {
+				code.textContent = '✖ Error: File does not exist or is empty';
+			}
+		}
+	};
+	
+	xhr.send(null);
+});
+
+})();
