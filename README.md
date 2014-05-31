@@ -27,3 +27,9 @@ See the [demo](http://adamlynch.com/gulp-slides) (also includes usage guide).
 2. Edit a slide in `slides/`.
 3. Run `gulp` to generate the slide-deck.
 4. See your masterpiece at `index.html`.
+
+## Roadmap
+
+- Gulp tasks for converting your slides to images / a PDF
+- Better image path handling
+- And more
