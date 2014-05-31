@@ -8,7 +8,7 @@ gulp.task('default', ['init']);
 gulp.task('init', ['copy'], function(done){
     gulp.src(['./package.json', './bower.json'])
         .pipe($.install())
-        .on('end', done);
+        .on('finish', done);
 });
 
 gulp.task('copy', function(done){
