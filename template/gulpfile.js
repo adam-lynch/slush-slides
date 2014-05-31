@@ -109,6 +109,9 @@ gulp.task('scripts-third-party', function(done){
 	$.bowerFiles()
         .pipe($.concat('third-party.js'))
         .pipe(pipes.minifyAndStoreScripts())
+        .on('error', function(err){
+            exit(err);
+        })
         .on('end', done);
 });
 
