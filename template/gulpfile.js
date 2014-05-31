@@ -52,15 +52,17 @@ gulp.task('watch', ['compile'], function() {
 });
 
 
-gulp.task('clean', function(){
+gulp.task('clean', function(done){
 	gulp.src(paths.output)
-	.pipe($.clean())
+        .pipe($.clean())
+        .on('end', done);
 });
 
 
-gulp.task('validate', function(){
+gulp.task('validate', function(done){
 	gulp.src(paths.outputHtml)
-	.pipe($.w3cjs())
+        .pipe($.w3cjs())
+        .on('end', done);
 });
 
 /*
@@ -68,13 +70,14 @@ gulp.task('validate', function(){
 */
 
 
-gulp.task('images', function(){
+gulp.task('images', function(done){
 	gulp.src(paths.images)
-	.pipe(gulp.dest(paths.outputImageDir))
+	    .pipe(gulp.dest(paths.outputImageDir))
+        .on('end', done);
 });
 
 
-gulp.task('parse-slides', function(){
+gulp.task('parse-slides', function(done){
 	latestSlides = []; // reset
 
 	gulp.src(paths.slides)
@@ -82,45 +85,50 @@ gulp.task('parse-slides', function(){
         .pipe($.markdown())
         .pipe(each(function(slide){
             latestSlides.push(slide);
-        }));
+        }))
+        .on('end', done);
 });
 
 
 gulp.task('scripts', ['scripts-first-party', 'scripts-third-party']);
 
 
-gulp.task('scripts-first-party', function(){
+gulp.task('scripts-first-party', function(done){
 	gulp.src(paths.rootScript, {read: false})
-	.pipe($.browserify({
-            transform: ['coffeeify'],
-            extensions: ['.coffee']
-        }))
-	.pipe($.rename('index.js'))
-	.pipe(pipes.minifyAndStoreScripts());
+        .pipe($.browserify({
+                transform: ['coffeeify'],
+                extensions: ['.coffee']
+            }))
+        .pipe($.rename('index.js'))
+        .pipe(pipes.minifyAndStoreScripts())
+        .on('end', done);
 });
 
 
-gulp.task('scripts-third-party', function(){
+gulp.task('scripts-third-party', function(done){
 	$.bowerFiles()
-	.pipe($.concat('third-party.js'))
-	.pipe(pipes.minifyAndStoreScripts());
+        .pipe($.concat('third-party.js'))
+        .pipe(pipes.minifyAndStoreScripts())
+        .on('end', done);
 });
 
 
-gulp.task('templates', ['parse-slides'], function() {
+gulp.task('templates', ['parse-slides'], function(done) {
     gulp.src(paths.templates)
         .pipe($.jade({
             locals: {
                 slides: latestSlides
             }
         }))
-        .pipe(gulp.dest(paths.outputHtmlDir));
+        .pipe(gulp.dest(paths.outputHtmlDir))
+        .on('end', done);
 });
 
 
-gulp.task('styles', function(){
+gulp.task('styles', function(done){
 	gulp.src(paths.rootStylesheet)
-	.pipe($.less())
-	.pipe($.autoprefixer('last 2 versions'))
-	.pipe(gulp.dest(paths.output));
+        .pipe($.less())
+        .pipe($.autoprefixer('last 2 versions'))
+        .pipe(gulp.dest(paths.output))
+        .on('end', done);
 });
